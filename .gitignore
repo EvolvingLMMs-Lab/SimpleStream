@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+.claude/
+
+# Local datasets and generated artifacts
+data/
+results/
+main_experiments/results/
+efficiency/result/
+efficiency/video/
+
+# Logs and temporary run state
+*.log
+*.jsonl
+done
+offload/
+
+# Local media
+*.mp4
+*.mov
+*.avi

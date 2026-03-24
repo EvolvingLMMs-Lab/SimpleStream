@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140" width="800" height="140">
+  <defs>
+    <linearGradient id="simpleGradDark" x1="311" y1="0" x2="531" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#147880"/>
+      <stop offset="50%" stop-color="#50A5AF"/>
+      <stop offset="100%" stop-color="#82CDD7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="140" fill="#0A1216"/>
+
+  <g transform="translate(81, 0)">
+    <!-- Dot grid -->
+    <g opacity="0.3">
+      <circle cx="20" cy="20" r="1" fill="#1A2428"/><circle cx="40" cy="20" r="1" fill="#1A2428"/>
+      <circle cx="60" cy="20" r="1" fill="#1A2428"/><circle cx="20" cy="40" r="1" fill="#1A2428"/>
+      <circle cx="40" cy="40" r="1" fill="#1A2428"/><circle cx="60" cy="40" r="1" fill="#1A2428"/>
+      <circle cx="20" cy="60" r="1" fill="#1A2428"/><circle cx="40" cy="60" r="1" fill="#1A2428"/>
+      <circle cx="20" cy="80" r="1" fill="#1A2428"/><circle cx="40" cy="80" r="1" fill="#1A2428"/>
+      <circle cx="60" cy="80" r="1" fill="#1A2428"/><circle cx="20" cy="100" r="1" fill="#1A2428"/>
+      <circle cx="40" cy="100" r="1" fill="#1A2428"/><circle cx="60" cy="100" r="1" fill="#1A2428"/>
+      <circle cx="20" cy="120" r="1" fill="#1A2428"/><circle cx="40" cy="120" r="1" fill="#1A2428"/>
+      <circle cx="60" cy="120" r="1" fill="#1A2428"/>
+    </g>
+
+    <!-- Frame 1 (back) -->
+    <polygon points="52,38 142,38 134,102 44,102" fill="none" stroke="#1E2D32" stroke-width="1.5"/>
+    <!-- Frame 2 (mid) -->
+    <polygon points="64,38 154,38 146,102 56,102" fill="none" stroke="#50A5AF" stroke-width="1.5"/>
+    <!-- Frame 3 (front) -->
+    <polygon points="76,38 166,38 158,102 68,102" fill="none" stroke="#82CDD7" stroke-width="2"/>
+
+    <!-- Play triangle -->
+    <polygon points="108,52 130,70 108,88" fill="#82CDD7"/>
+
+    <!-- Chevrons -->
+    <polyline points="178,62 184,70 178,78" fill="none" stroke="#287880" stroke-width="1.5" stroke-linecap="round"/>
+    <polyline points="190,62 196,70 190,78" fill="none" stroke="#50A5AF" stroke-width="1.5" stroke-linecap="round"/>
+    <polyline points="202,62 208,70 202,78" fill="none" stroke="#82CDD7" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- SimpleStream — single text, two tspans, no gap -->
+    <text x="230" y="88" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="56" letter-spacing="-0.5"><tspan fill="url(#simpleGradDark)">Simple</tspan><tspan fill="#DCEBF0">Stream</tspan></text>
+  </g>
+</svg>
