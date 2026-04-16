@@ -136,6 +136,10 @@ python scoring/score_ovo_bench.py \
 ```
 </details>
 
+## Contact
+
+If you have any questions about the paper, codebase, or experimental setup, please feel free to contact [shenyujiao18@gmail.com](mailto:shenyujiao18@gmail.com).
+
 ## 📢 Citation
 
 If you find this work useful, please consider citing our paper:
