@@ -181,6 +181,12 @@ class RecentWindowQAModel:
                 return torch.cat(list(first), dim=0)
         raise TypeError(f"Unexpected vision feature type: {type(features)}")
 
+    def _get_multimodal_model(self):
+        multimodal_model = getattr(self.model, "model", None)
+        if multimodal_model is None:
+            raise TypeError("Expected a Qwen2.5-VL style multimodal model.")
+        return multimodal_model
+
     def _infer_module_device(self, module: Any) -> torch.device:
         for parameter in module.parameters():
             return parameter.device
@@ -226,37 +232,84 @@ class RecentWindowQAModel:
         )[0].strip()
 
     @torch.inference_mode()
-    def generate_from_frames(self, frames: list[Image.Image], question: str) -> str:
-        """Generate with the model's native multimodal path for Qwen2.5-VL."""
+    def encode_vision(self, frames: list[Image.Image]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Encode frames once so generation can reuse a cached-vision prefix."""
         visual_device = self._get_visual_device()
-        text_device = self._get_text_input_device()
 
-        content: list[dict[str, Any]] = [{"type": "image", "image": frame} for frame in frames]
-        content.append({"type": "text", "text": question})
+        content = [{"type": "image", "image": frame} for frame in frames]
+        content.append({"type": "text", "text": "."})
         messages = [{"role": "user", "content": content}]
         inputs = self.processor.apply_chat_template(
             messages,
             tokenize=True,
-            add_generation_prompt=True,
+            add_generation_prompt=False,
             return_dict=True,
             return_tensors="pt",
         )
 
-        input_ids = inputs["input_ids"].to(text_device)
-        attention_mask = inputs["attention_mask"].to(text_device)
         pixel_values = inputs["pixel_values"].to(visual_device, dtype=self._get_visual_dtype())
         image_grid_thw = inputs["image_grid_thw"].to(visual_device)
+        image_embeds = self._flatten_vision_features(
+            self._get_image_feature_model().get_image_features(pixel_values, image_grid_thw)
+        )
+        return image_embeds, image_grid_thw
 
-        self._last_num_vision_tokens = int((input_ids == self.image_token_id).sum().item())
-        self._last_num_vision_frames = int(image_grid_thw.shape[0])
+    @torch.inference_mode()
+    def generate_with_cached_vision(
+        self,
+        cached_embeds: torch.Tensor,
+        cached_grid_thw: torch.Tensor,
+        question: str,
+    ) -> str:
+        """Generate from cached vision embeddings using a single explicit vision block."""
+        text_device = self._get_text_input_device()
+        tokenizer = self.processor.tokenizer
+        multimodal_model = self._get_multimodal_model()
 
+        num_vision_tokens = int(cached_embeds.shape[0])
+        self._last_num_vision_tokens = num_vision_tokens
+        self._last_num_vision_frames = int(cached_grid_thw.shape[0]) if cached_grid_thw is not None else 0
+
+        question_ids = tokenizer.encode(question, add_special_tokens=False)
+        input_ids_list: list[int] = []
+        input_ids_list.extend([self._im_start_id])
+        input_ids_list.extend(tokenizer.encode("user\n", add_special_tokens=False))
+        input_ids_list.append(self._vision_start_id)
+        input_ids_list.extend([self.image_token_id] * num_vision_tokens)
+        input_ids_list.append(self._vision_end_id)
+        input_ids_list.extend(tokenizer.encode("\n", add_special_tokens=False))
+        input_ids_list.extend(question_ids)
+        input_ids_list.append(self._im_end_id)
+        input_ids_list.extend(tokenizer.encode("\n", add_special_tokens=False))
+        input_ids_list.extend([self._im_start_id])
+        input_ids_list.extend(tokenizer.encode("assistant\n", add_special_tokens=False))
+
+        input_ids = torch.tensor([input_ids_list], dtype=torch.long, device=text_device)
+        attention_mask = torch.ones_like(input_ids)
+        inputs_embeds = self.model.get_input_embeddings()(input_ids)
+        cached_embeds = cached_embeds.to(inputs_embeds.device, inputs_embeds.dtype)
+        image_mask = input_ids == self.image_token_id
+        image_mask_expanded = image_mask.unsqueeze(-1).expand_as(inputs_embeds)
+        inputs_embeds = inputs_embeds.masked_scatter(image_mask_expanded, cached_embeds)
+
+        position_ids, _ = multimodal_model.get_rope_index(
+            input_ids=input_ids,
+            image_grid_thw=cached_grid_thw.to(inputs_embeds.device),
+            video_grid_thw=None,
+            attention_mask=attention_mask,
+        )
         return self._generate_from_model_inputs(
             prompt_length=int(input_ids.shape[1]),
-            input_ids=input_ids,
+            inputs_embeds=inputs_embeds,
             attention_mask=attention_mask,
-            pixel_values=pixel_values,
-            image_grid_thw=image_grid_thw,
+            position_ids=position_ids,
         )
+
+    @torch.inference_mode()
+    def generate_from_frames(self, frames: list[Image.Image], question: str) -> str:
+        """Generate from frames via cached vision encoding and explicit prefix construction."""
+        cached_embeds, cached_grid_thw = self.encode_vision(frames)
+        return self.generate_with_cached_vision(cached_embeds, cached_grid_thw, question)
 
 
 def build_ovo_prompt(task: str, anno: dict[str, Any], index: int = 0) -> str:

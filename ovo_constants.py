@@ -10,44 +10,29 @@ REAL_TIME_TASKS = ["OCR", "ACR", "ATR", "STU", "FPD", "OJR"]
 FORWARD_TASKS = ["REC", "SSR", "CRR"]
 
 # ---------------------------------------------------------------------------
-# Prompt templates (from official OVO-Bench)
+# Prompt templates
 # ---------------------------------------------------------------------------
-BR_PROMPT_TEMPLATE = """
-Question: {}
-Options:
-{}
+BR_PROMPT_TEMPLATE = (
+    "{0}\n"
+    "Options: {1}\n"
+    "Only give the best option's letter directly."
+)
 
-Respond only with the letter corresponding to your chosen option (e.g., A, B, C).
-Do not include any additional text or explanation in your response.
-"""
+REC_PROMPT_TEMPLATE = (
+    "{0}\n"
+    "Only give a number as answer."
+)
 
-REC_PROMPT_TEMPLATE = """
-You're watching a video in which people may perform a certain type of action repetively.
-The person performing this kind of action are referred to as 'they' in the following statement.
-You're task is to count how many times have different people in the video perform this kind of action in total.
-One complete motion counts as one.
-Now, answer the following question: {}
-Provide your answer as a single number (e.g., 0, 1, 2, 3…) indicating the total count.
-Do not include any additional text or explanation in your response.
-"""
+SSR_PROMPT_TEMPLATE = (
+    "Is this person performing the tutorial step: {0}\n"
+    "Answer Yes or No only."
+)
 
-SSR_PROMPT_TEMPLATE = """
-You're watching a tutorial video which contain a sequential of steps.
-The following is one step from the whole procedures:
-{}
-Your task is to determine if the man or woman in the video is currently performing this step.
-Answer only with "Yes" or "No".
-Do not include any additional text or explanation in your response.
-"""
-
-CRR_PROMPT_TEMPLATE = """
-You're responsible of answering questions based on the video content.
-The following question are relevant to the latest frames, i.e. the end of the video.
-{}
-Decide whether existing visual content, especially latest frames, i.e. frames that near the end of the video, provide enough information for answering the question.
-Answer only with "Yes" or "No".
-Do not include any additional text or explanation in your response.
-"""
+CRR_PROMPT_TEMPLATE = (
+    "{0}\n"
+    "Is there enough information in the provided video to answer the question? "
+    "Answer Yes or No only."
+)
 
 # ---------------------------------------------------------------------------
 # Scoring helpers

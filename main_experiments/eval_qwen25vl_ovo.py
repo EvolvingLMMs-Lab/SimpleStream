@@ -1,8 +1,9 @@
 """
 OVO-Bench recent-window evaluation for Qwen2.5-VL.
 
-Release path is aligned with the current no-RAG/no-cache recent-window baseline:
-decode video -> chunk by time -> keep the last N chunks -> native frame prefill
+Release path follows the cached-vision recent-window setup:
+decode video -> chunk by time -> keep the last N chunks ->
+encode each chunk -> concatenate cached vision embeddings -> generate
 """
 
 from __future__ import annotations
@@ -25,11 +26,11 @@ from tqdm import tqdm
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from ovo_constants import BACKWARD_TASKS, FORWARD_TASKS, REAL_TIME_TASKS
-from lib.recent_window_eval import (
+from lib.recent_window_eval import load_jsonl_results
+from lib.recent_window_eval_qwen25 import (
     RecentWindowQAModel,
     evaluate_ovo_backward_realtime,
     evaluate_ovo_forward,
-    load_jsonl_results,
     print_ovo_results,
 )
 
@@ -158,12 +159,6 @@ def main() -> None:
     parser.add_argument("--chunk_duration", type=float, default=1.0)
     parser.add_argument("--fps", type=float, default=1.0)
     parser.add_argument("--max_qa_tokens", type=int, default=256)
-    parser.add_argument(
-        "--max_samples_per_split",
-        type=int,
-        default=None,
-        help="Optional smoke-test cap applied independently to backward/realtime/forward after shuffle.",
-    )
     args = parser.parse_args()
 
     accelerator = Accelerator()
@@ -179,12 +174,6 @@ def main() -> None:
     random.shuffle(backward_anno)
     random.shuffle(realtime_anno)
     random.shuffle(forward_anno)
-    if args.max_samples_per_split is not None:
-        if args.max_samples_per_split < 1:
-            raise ValueError("--max_samples_per_split must be >= 1")
-        backward_anno = backward_anno[: args.max_samples_per_split]
-        realtime_anno = realtime_anno[: args.max_samples_per_split]
-        forward_anno = forward_anno[: args.max_samples_per_split]
 
     accelerator.print(f"\n{'=' * 60}")
     accelerator.print(f"OVO-Bench Recent-Window Evaluation ({MODEL_LABEL})")
@@ -195,8 +184,6 @@ def main() -> None:
         f"Window: recent_frames_only={args.recent_frames_only}, "
         f"chunk_duration={args.chunk_duration}, fps={args.fps}"
     )
-    if args.max_samples_per_split is not None:
-        accelerator.print(f"Smoke cap per split: {args.max_samples_per_split}")
     accelerator.print(f"{'=' * 60}\n")
 
     evaluator = RecentWindowQAModel(
@@ -284,7 +271,6 @@ def main() -> None:
                         "recent_frames_only": args.recent_frames_only,
                         "chunk_duration": args.chunk_duration,
                         "fps": args.fps,
-                        "max_samples_per_split": args.max_samples_per_split,
                     },
                     "backward": all_backward,
                     "realtime": all_realtime,

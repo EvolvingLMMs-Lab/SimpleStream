@@ -162,7 +162,7 @@ def main() -> None:
         "--max_samples_per_split",
         type=int,
         default=None,
-        help="Optional smoke-test cap applied independently to backward/realtime/forward after shuffle.",
+        help="Optional sample cap applied independently to backward/realtime/forward after shuffle.",
     )
     args = parser.parse_args()
 
@@ -196,7 +196,7 @@ def main() -> None:
         f"chunk_duration={args.chunk_duration}, fps={args.fps}"
     )
     if args.max_samples_per_split is not None:
-        accelerator.print(f"Smoke cap per split: {args.max_samples_per_split}")
+        accelerator.print(f"Sample cap per split: {args.max_samples_per_split}")
     accelerator.print(f"{'=' * 60}\n")
 
     evaluator = RecentWindowQAModel(

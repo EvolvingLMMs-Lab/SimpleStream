@@ -1,18 +1,18 @@
-# Core dependencies for simpleStream experiments
-torch>=2.1.0
-transformers>=4.45.0
-accelerate>=0.25.0
+# Shared dependencies for the SimpleStream codebase.
+# Install torch / torchvision separately for your platform first
+# (see https://pytorch.org/get-started/locally/), then install one of:
+#   - requirements-qwen3.txt   (Qwen3-VL stack)
+#   - requirements-qwen25.txt  (Qwen2.5-VL stack)
 
-# Video processing
-decord>=0.6.0
-av>=12.0.0
-qwen-vl-utils<0.0.12
+# Video decoding
+av>=14.4.0
 
-# Vision & utilities
+# Image / array utilities
 Pillow>=10.0.0
 numpy>=1.24.0
-tqdm>=4.65.0
-torchvision>=0.16.0
 
-# Optional: flash attention (recommended for speed)
-# pip install flash-attn --no-build-isolation
+# Progress bars
+tqdm>=4.65.0
+
+# Qwen-VL preprocessing helper (used by both backbones)
+qwen-vl-utils==0.0.14

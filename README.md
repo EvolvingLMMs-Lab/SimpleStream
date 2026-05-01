@@ -38,10 +38,34 @@ A sliding-window baseline that feeds only the most recent ***N*** frames to an o
 
 ### Environment Setup
 
+`Qwen3-VL` and `Qwen2.5-VL` require separate `transformers` / `accelerate`
+stacks. Install PyTorch and torchvision first using the official instructions
+for your CUDA runtime, then install the matching dependency file below.
+
+**Qwen3-VL**
+
 ```bash
-conda create -n simplestream python=3.10 -y
-conda activate simplestream
-pip install -r requirements.txt
+conda create -n simplestream-qwen3 python=3.10 -y
+conda activate simplestream-qwen3
+
+# Install torch / torchvision first:
+# https://pytorch.org/get-started/locally/
+
+pip install -r requirements-qwen3.txt
+# Optional: faster attention backend
+pip install flash-attn --no-build-isolation
+```
+
+**Qwen2.5-VL**
+
+```bash
+conda create -n simplestream-qwen25 python=3.11 -y
+conda activate simplestream-qwen25
+
+# Install torch / torchvision first:
+# https://pytorch.org/get-started/locally/
+
+pip install -r requirements-qwen25.txt
 # Optional: faster attention backend
 pip install flash-attn --no-build-isolation
 ```
@@ -63,6 +87,8 @@ Downloaded automatically from HuggingFace on first run:
 <summary><b>Qwen3-VL on OVO-Bench</b></summary>
 
 ```bash
+conda activate simplestream-qwen3
+
 CUDA_VISIBLE_DEVICES=0,1 accelerate launch --num_processes=2 \
     main_experiments/eval_qwen3vl_ovo.py \
     --model_path Qwen/Qwen3-VL-8B-Instruct \
@@ -84,6 +110,8 @@ bash main_experiments/run_qwen3vl_ovo_4gpu.sh
 <summary><b>Qwen2.5-VL on OVO-Bench</b></summary>
 
 ```bash
+conda activate simplestream-qwen25
+
 CUDA_VISIBLE_DEVICES=0,1 accelerate launch --num_processes=2 \
     main_experiments/eval_qwen25vl_ovo.py \
     --model_path Qwen/Qwen2.5-VL-7B-Instruct \

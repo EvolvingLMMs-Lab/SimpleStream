@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Qwen3-VL runtime
+transformers==4.57.6
+accelerate==1.12.0
